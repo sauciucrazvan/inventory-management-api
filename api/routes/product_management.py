@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional, Generator
 from uuid import UUID
 from pydantic import BaseModel, validator
 from models import Product, Warehouse, Stock
 from db.session import getSession
+from ..rate_limiter import limiter, RateLimitConfig
 
 router = APIRouter(prefix="/warehouses/{warehouse_id}/products", tags=["product_management"])
 
@@ -74,7 +75,8 @@ def get_db() -> Generator[Session, None, None]:
         session.close()
 
 @router.post("/", response_model=ProductCreateResponse)
-async def create_product(warehouse_id: str, product: ProductCreate, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.WRITE)
+async def create_product(request: Request, warehouse_id: str, product: ProductCreate, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
     except ValueError:
@@ -116,7 +118,8 @@ async def create_product(warehouse_id: str, product: ProductCreate, db: Session 
     )
 
 @router.get("/", response_model=List[ProductResponse])
-async def get_products(warehouse_id: str, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.READ)
+async def get_products(request: Request, warehouse_id: str, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
     except ValueError:
@@ -139,7 +142,8 @@ async def get_products(warehouse_id: str, db: Session = Depends(get_db)):
     ]
 
 @router.get("/{product_id}", response_model=ProductDetailResponse)
-async def get_product(warehouse_id: str, product_id: str, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.READ)
+async def get_product(request: Request, warehouse_id: str, product_id: str, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)
@@ -165,7 +169,8 @@ async def get_product(warehouse_id: str, product_id: str, db: Session = Depends(
     )
 
 @router.patch("/{product_id}", response_model=MessageResponse)
-async def patch_product(warehouse_id: str, product_id: str, product_update: ProductPatch, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.WRITE)
+async def patch_product(request: Request, warehouse_id: str, product_id: str, product_update: ProductPatch, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)
@@ -189,7 +194,8 @@ async def patch_product(warehouse_id: str, product_id: str, product_update: Prod
     return MessageResponse(message="Product updated successfully")
 
 @router.put("/{product_id}", response_model=MessageResponse)
-async def update_product(warehouse_id: str, product_id: str, product_update: ProductUpdate, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.WRITE)
+async def update_product(request: Request, warehouse_id: str, product_id: str, product_update: ProductUpdate, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)
@@ -213,7 +219,8 @@ async def update_product(warehouse_id: str, product_id: str, product_update: Pro
     return MessageResponse(message="Product updated successfully")
 
 @router.delete("/{product_id}", response_model=MessageResponse)
-async def delete_product(warehouse_id: str, product_id: str, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.WRITE)
+async def delete_product(request: Request, warehouse_id: str, product_id: str, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)

@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional, Generator
 from uuid import UUID
 from pydantic import BaseModel
 from models import Warehouse
 from db.session import getSession
+from ..rate_limiter import limiter, RateLimitConfig
 
 router = APIRouter(prefix="/warehouses", tags=["warehouses"])
 
@@ -40,7 +41,8 @@ def get_db() -> Generator[Session, None, None]:
         session.close()
 
 @router.post("/", response_model=WarehouseCreateResponse)
-async def create_warehouse(warehouse: WarehouseCreate, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.WRITE)
+async def create_warehouse(request: Request, warehouse: WarehouseCreate, db: Session = Depends(get_db)):
     db_warehouse = Warehouse(
         name=warehouse.name,
         location=warehouse.location
@@ -55,7 +57,8 @@ async def create_warehouse(warehouse: WarehouseCreate, db: Session = Depends(get
     )
 
 @router.get("/", response_model=List[WarehouseResponse])
-async def get_warehouses(db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.READ)
+async def get_warehouses(request: Request, db: Session = Depends(get_db)):
     warehouses = db.query(Warehouse).all()
     return [
         WarehouseResponse(
@@ -67,7 +70,8 @@ async def get_warehouses(db: Session = Depends(get_db)):
     ]
 
 @router.get("/{warehouse_id}", response_model=WarehouseResponse)
-async def get_warehouse(warehouse_id: str, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.READ)
+async def get_warehouse(request: Request, warehouse_id: str, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
     except ValueError:
@@ -85,7 +89,8 @@ async def get_warehouse(warehouse_id: str, db: Session = Depends(get_db)):
     )
 
 @router.patch("/{warehouse_id}", response_model=MessageResponse)
-async def patch_warehouse(warehouse_id: str, warehouse_update: WarehousePatch, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.WRITE)
+async def patch_warehouse(request: Request, warehouse_id: str, warehouse_update: WarehousePatch, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
     except ValueError:
@@ -105,7 +110,8 @@ async def patch_warehouse(warehouse_id: str, warehouse_update: WarehousePatch, d
     return MessageResponse(message="Warehouse updated successfully")
 
 @router.put("/{warehouse_id}", response_model=MessageResponse)
-async def update_warehouse(warehouse_id: str, warehouse_update: WarehouseUpdate, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.WRITE)
+async def update_warehouse(request: Request, warehouse_id: str, warehouse_update: WarehouseUpdate, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
     except ValueError:

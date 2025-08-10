@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional, Generator
 from uuid import UUID
 from pydantic import BaseModel
 from models import Product, Warehouse, Stock
 from db.session import getSession
+from ..rate_limiter import limiter, RateLimitConfig
 
 router = APIRouter(prefix="/warehouses/{warehouse_id}/inventory", tags=["stock_management"])
 
@@ -38,7 +39,8 @@ def get_db() -> Generator[Session, None, None]:
         session.close()
 
 @router.get("/", response_model=List[StockResponse])
-async def get_inventory(warehouse_id: str, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.READ)
+async def get_inventory(request: Request, warehouse_id: str, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
     except ValueError:
@@ -62,7 +64,8 @@ async def get_inventory(warehouse_id: str, db: Session = Depends(get_db)):
     ]
 
 @router.get("/{product_id}", response_model=StockResponse)
-async def get_product_inventory(warehouse_id: str, product_id: str, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.READ)
+async def get_product_inventory(request: Request, warehouse_id: str, product_id: str, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)
@@ -88,7 +91,8 @@ async def get_product_inventory(warehouse_id: str, product_id: str, db: Session 
     )
 
 @router.post("/{product_id}/increase", response_model=StockOperationResponse)
-async def increase_product_inventory(warehouse_id: str, product_id: str, request: StockIncreaseRequest, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.STOCK)
+async def increase_product_inventory(http_request: Request, warehouse_id: str, product_id: str, request: StockIncreaseRequest, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)
@@ -119,7 +123,8 @@ async def increase_product_inventory(warehouse_id: str, product_id: str, request
     )
 
 @router.post("/{product_id}/decrease", response_model=StockOperationResponse)
-async def decrease_product_inventory(warehouse_id: str, product_id: str, request: StockDecreaseRequest, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.STOCK)
+async def decrease_product_inventory(http_request: Request, warehouse_id: str, product_id: str, request: StockDecreaseRequest, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)
@@ -153,7 +158,8 @@ async def decrease_product_inventory(warehouse_id: str, product_id: str, request
     )
 
 @router.post("/{product_id}/transfer", response_model=StockOperationResponse)
-async def transfer_product_inventory(warehouse_id: str, product_id: str, request: StockTransferRequest, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.STOCK)
+async def transfer_product_inventory(http_request: Request, warehouse_id: str, product_id: str, request: StockTransferRequest, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)

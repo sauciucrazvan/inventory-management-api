@@ -2,8 +2,12 @@ import uvicorn
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import warehouses, suppliers, stock_management, product_management
+from .rate_limiter import setup_rate_limiting
 
 app = FastAPI(title="Inventory Management API", version="1.0.0")
+
+# Setup rate limiting
+setup_rate_limiting(app)
 
 def runApp():
 

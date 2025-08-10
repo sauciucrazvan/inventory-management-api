@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional, Generator
 from uuid import UUID
 from pydantic import BaseModel
 from models import Supplier
 from db.session import getSession
+from ..rate_limiter import limiter, RateLimitConfig
 
 router = APIRouter(prefix="/suppliers", tags=["suppliers"])
 
@@ -40,7 +41,8 @@ def get_db() -> Generator[Session, None, None]:
         session.close()
 
 @router.post("/", response_model=SupplierCreateResponse)
-async def create_supplier(supplier: SupplierCreate, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.WRITE)
+async def create_supplier(request: Request, supplier: SupplierCreate, db: Session = Depends(get_db)):
     db_supplier = Supplier(
         name=supplier.name,
         contact_email=supplier.contact_email
@@ -55,7 +57,8 @@ async def create_supplier(supplier: SupplierCreate, db: Session = Depends(get_db
     )
 
 @router.get("/", response_model=List[SupplierResponse])
-async def get_suppliers(db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.READ)
+async def get_suppliers(request: Request, db: Session = Depends(get_db)):
     suppliers = db.query(Supplier).all()
     return [
         SupplierResponse(
@@ -67,7 +70,8 @@ async def get_suppliers(db: Session = Depends(get_db)):
     ]
 
 @router.get("/{supplier_id}", response_model=SupplierResponse)
-async def get_supplier(supplier_id: str, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.READ)
+async def get_supplier(request: Request, supplier_id: str, db: Session = Depends(get_db)):
     try:
         supplier_uuid = UUID(supplier_id)
     except ValueError:
@@ -85,7 +89,8 @@ async def get_supplier(supplier_id: str, db: Session = Depends(get_db)):
     )
 
 @router.patch("/{supplier_id}", response_model=MessageResponse)
-async def patch_supplier(supplier_id: str, supplier_update: SupplierPatch, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.WRITE)
+async def patch_supplier(request: Request, supplier_id: str, supplier_update: SupplierPatch, db: Session = Depends(get_db)):
     try:
         supplier_uuid = UUID(supplier_id)
     except ValueError:
@@ -105,7 +110,8 @@ async def patch_supplier(supplier_id: str, supplier_update: SupplierPatch, db: S
     return MessageResponse(message="Supplier updated successfully")
 
 @router.put("/{supplier_id}", response_model=MessageResponse)
-async def update_supplier(supplier_id: str, supplier_update: SupplierUpdate, db: Session = Depends(get_db)):
+@limiter.limit(RateLimitConfig.WRITE)
+async def update_supplier(request: Request, supplier_id: str, supplier_update: SupplierUpdate, db: Session = Depends(get_db)):
     try:
         supplier_uuid = UUID(supplier_id)
     except ValueError:
