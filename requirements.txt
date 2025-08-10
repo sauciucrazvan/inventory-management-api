@@ -1,0 +1,18 @@
+# FastAPI Core
+fastapi==0.115.4
+uvicorn[standard]==0.32.0
+pydantic==2.10.2
+
+# Database
+sqlalchemy==2.0.36
+alembic==1.14.0
+
+# Environment Management
+python-dotenv==1.0.1
+
+# Development & Testing
+pytest==8.3.3
+pytest-asyncio==0.24.0
+
+# Additional utilities
+typing-extensions==4.12.2
