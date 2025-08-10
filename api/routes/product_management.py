@@ -80,17 +80,14 @@ async def create_product(warehouse_id: str, product: ProductCreate, db: Session 
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid warehouse ID format")
     
-    # Verify warehouse exists
     warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Warehouse not found")
     
-    # Check if SKU already exists
     existing_product = db.query(Product).filter(Product.sku == product.sku).first()
     if existing_product:
         raise HTTPException(status_code=400, detail="Product with this SKU already exists")
     
-    # Create product
     db_product = Product(
         name=product.name,
         sku=product.sku,
@@ -102,6 +99,16 @@ async def create_product(warehouse_id: str, product: ProductCreate, db: Session 
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
+    
+    # Create initial stock record for this warehouse
+    stock_record = Stock(
+        product_id=db_product.id,
+        sku=product.sku,
+        stock_quantity=product.stock_quantity
+    )
+    stock_record.warehouses.append(warehouse)
+    db.add(stock_record)
+    db.commit()
     
     return ProductCreateResponse(
         id=str(db_product.id),
@@ -115,12 +122,10 @@ async def get_products(warehouse_id: str, db: Session = Depends(get_db)):
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid warehouse ID format")
     
-    # Verify warehouse exists
     warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Warehouse not found")
     
-    # Get all products (for now, returning all products - could be filtered by warehouse later)
     products = db.query(Product).all()
     return [
         ProductResponse(
@@ -141,12 +146,10 @@ async def get_product(warehouse_id: str, product_id: str, db: Session = Depends(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid ID format")
     
-    # Verify warehouse exists
     warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Warehouse not found")
     
-    # Get product
     product = db.query(Product).filter(Product.id == product_uuid).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -169,17 +172,14 @@ async def patch_product(warehouse_id: str, product_id: str, product_update: Prod
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid ID format")
     
-    # Verify warehouse exists
     warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Warehouse not found")
     
-    # Get product
     product = db.query(Product).filter(Product.id == product_uuid).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Update only provided fields (stock_quantity validation handled by Pydantic)
     update_data = product_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(product, field, value)
@@ -196,17 +196,14 @@ async def update_product(warehouse_id: str, product_id: str, product_update: Pro
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid ID format")
     
-    # Verify warehouse exists
     warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Warehouse not found")
     
-    # Get product
     product = db.query(Product).filter(Product.id == product_uuid).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Update all fields except stock_quantity
     update_data = product_update.dict()
     for field, value in update_data.items():
         setattr(product, field, value)
@@ -223,17 +220,14 @@ async def delete_product(warehouse_id: str, product_id: str, db: Session = Depen
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid ID format")
     
-    # Verify warehouse exists
     warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Warehouse not found")
     
-    # Get product
     product = db.query(Product).filter(Product.id == product_uuid).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Delete product
     db.delete(product)
     db.commit()
     
