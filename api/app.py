@@ -14,7 +14,6 @@ def runApp():
     api_router.include_router(stock_management.router)
     api_router.include_router(product_management.router)
 
-
     app.include_router(api_router)
     
     app.add_middleware(
