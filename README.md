@@ -1,7 +1,7 @@
-<p align="center" style="font-weight: bold; font-size: 24px;">
-    <img src="https://i.imgur.com/sbP28Bb.png" style="border-radius: 16px;" width="312" height="160">
+<p align="center">
+    <img src="https://i.imgur.com/sbP28Bb.png" width="312" height="160">
     <br />
-    Inventory Management API
+    <b>Inventory Management API</b>
 </p>
 
 The API includes endpoints that will help keep track of products, stock levels, warehouses, suppliers and inventory movements (e.g., stock-in, stock-out, transfers).
