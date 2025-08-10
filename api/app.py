@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import warehouses
+from .routes import warehouses, suppliers, stock_management, product_management
 
 app = FastAPI(title="Inventory Management API", version="1.0.0")
 
@@ -10,6 +10,10 @@ def runApp():
     api_router = APIRouter(prefix="/api")
 
     api_router.include_router(warehouses.router)
+    api_router.include_router(suppliers.router)
+    api_router.include_router(stock_management.router)
+    api_router.include_router(product_management.router)
+
 
     app.include_router(api_router)
     
