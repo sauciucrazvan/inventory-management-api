@@ -92,7 +92,7 @@ async def get_product_inventory(request: Request, warehouse_id: str, product_id:
 
 @router.post("/{product_id}/increase", response_model=StockOperationResponse)
 @limiter.limit(RateLimitConfig.STOCK)
-async def increase_product_inventory(http_request: Request, warehouse_id: str, product_id: str, request: StockIncreaseRequest, db: Session = Depends(get_db)):
+async def increase_product_inventory(request: Request, warehouse_id: str, product_id: str, stock_request: StockIncreaseRequest, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)
@@ -111,10 +111,10 @@ async def increase_product_inventory(http_request: Request, warehouse_id: str, p
     if not stock:
         raise HTTPException(status_code=404, detail="Product not found in this warehouse")
     
-    if request.quantity <= 0:
+    if stock_request.quantity <= 0:
         raise HTTPException(status_code=400, detail="Quantity must be positive")
     
-    stock.stock_quantity += request.quantity # type: ignore
+    stock.stock_quantity += stock_request.quantity # type: ignore
     db.commit()
     
     return StockOperationResponse(
@@ -124,7 +124,7 @@ async def increase_product_inventory(http_request: Request, warehouse_id: str, p
 
 @router.post("/{product_id}/decrease", response_model=StockOperationResponse)
 @limiter.limit(RateLimitConfig.STOCK)
-async def decrease_product_inventory(http_request: Request, warehouse_id: str, product_id: str, request: StockDecreaseRequest, db: Session = Depends(get_db)):
+async def decrease_product_inventory(request: Request, warehouse_id: str, product_id: str, stock_request: StockDecreaseRequest, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)
@@ -143,13 +143,13 @@ async def decrease_product_inventory(http_request: Request, warehouse_id: str, p
     if not stock:
         raise HTTPException(status_code=404, detail="Product not found in this warehouse")
     
-    if request.quantity <= 0:
+    if stock_request.quantity <= 0:
         raise HTTPException(status_code=400, detail="Quantity must be positive")
     
-    if stock.stock_quantity < request.quantity: # type: ignore
+    if stock.stock_quantity < stock_request.quantity: # type: ignore
         raise HTTPException(status_code=400, detail="Insufficient stock quantity")
     
-    stock.stock_quantity -= request.quantity # type: ignore
+    stock.stock_quantity -= stock_request.quantity # type: ignore
     db.commit()
     
     return StockOperationResponse(
@@ -159,11 +159,11 @@ async def decrease_product_inventory(http_request: Request, warehouse_id: str, p
 
 @router.post("/{product_id}/transfer", response_model=StockOperationResponse)
 @limiter.limit(RateLimitConfig.STOCK)
-async def transfer_product_inventory(http_request: Request, warehouse_id: str, product_id: str, request: StockTransferRequest, db: Session = Depends(get_db)):
+async def transfer_product_inventory(request: Request, warehouse_id: str, product_id: str, stock_request: StockTransferRequest, db: Session = Depends(get_db)):
     try:
         warehouse_uuid = UUID(warehouse_id)
         product_uuid = UUID(product_id)
-        target_warehouse_uuid = UUID(request.target_warehouse_id)
+        target_warehouse_uuid = UUID(stock_request.target_warehouse_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid ID format")
     
@@ -186,13 +186,13 @@ async def transfer_product_inventory(http_request: Request, warehouse_id: str, p
     if not source_stock:
         raise HTTPException(status_code=404, detail="Product not found in source warehouse")
     
-    if request.quantity <= 0:
+    if stock_request.quantity <= 0:
         raise HTTPException(status_code=400, detail="Quantity must be positive")
     
-    if source_stock.stock_quantity < request.quantity: # type: ignore
+    if source_stock.stock_quantity < stock_request.quantity: # type: ignore
         raise HTTPException(status_code=400, detail="Insufficient stock quantity")
     
-    source_stock.stock_quantity -= request.quantity # type: ignore
+    source_stock.stock_quantity -= stock_request.quantity # type: ignore
     
     target_stock = db.query(Stock).filter(
         Stock.product_id == product_uuid,
@@ -200,12 +200,12 @@ async def transfer_product_inventory(http_request: Request, warehouse_id: str, p
     ).first()
     
     if target_stock:
-        target_stock.stock_quantity += request.quantity # type: ignore
+        target_stock.stock_quantity += stock_request.quantity # type: ignore
     else:
         target_stock = Stock(
             product_id=product_uuid,
             sku=source_stock.sku, # type: ignore
-            stock_quantity=request.quantity
+            stock_quantity=stock_request.quantity
         )
         target_stock.warehouses.append(target_warehouse)
         db.add(target_stock)

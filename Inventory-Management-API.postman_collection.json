@@ -1,0 +1,533 @@
+{
+  "info": {
+    "_postman_id": "eeaaeeac-b1de-4bda-b8fc-f12cad695d3f",
+    "name": "Inventory Management API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "32093318"
+  },
+  "item": [
+    {
+      "name": "Warehouses",
+      "item": [
+        {
+          "name": "Warehouse",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"Secondary Warehouse\",\r\n    \"location\": \"Los Angeles\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "warehouses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Warehouses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "warehouses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Warehouse",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/e7758e3d-5f32-4506-bf23-0207f1201d72",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "e7758e3d-5f32-4506-bf23-0207f1201d72"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Warehouse",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"location\": \"San Francisco\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/e7758e3d-5f32-4506-bf23-0207f1201d72",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "e7758e3d-5f32-4506-bf23-0207f1201d72"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Warehouse",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Backup Warehouse\",\r\n  \"location\": \"Las Vegas\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/e7758e3d-5f32-4506-bf23-0207f1201d72",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "e7758e3d-5f32-4506-bf23-0207f1201d72"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "Suppliers",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/suppliers",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "suppliers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Supplier",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/suppliers/21553ed2-359d-457c-9f90-99081ae2cb8f",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "suppliers",
+                "21553ed2-359d-457c-9f90-99081ae2cb8f"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Supplier",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Supplier XYZ\",\r\n  \"contact_email\": \"contact@supplierxyz.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/suppliers",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "suppliers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Supplier",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"contact_email\": \"contact-new@supplierxyz.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/suppliers/21553ed2-359d-457c-9f90-99081ae2cb8f",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "suppliers",
+                "21553ed2-359d-457c-9f90-99081ae2cb8f"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Product",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Wireless Mouse\",\r\n  \"sku\": \"WM-1002\",\r\n  \"description\": \"Ergonomic wireless mouse with Bluetooth support\",\r\n  \"price\": 49.99,\r\n  \"category\": \"Electronics\",\r\n  \"stock_quantity\": 102\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/e7758e3d-5f32-4506-bf23-0207f1201d72/products",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "e7758e3d-5f32-4506-bf23-0207f1201d72",
+                "products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Products",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/bee3e2e6-9563-4ff6-b2d8-d1f98920f4e8/products",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "bee3e2e6-9563-4ff6-b2d8-d1f98920f4e8",
+                "products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Product",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/bee3e2e6-9563-4ff6-b2d8-d1f98920f4e8/products/a0cde6b9-1b75-449e-bbc1-8f4fcc3aa8e4",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "bee3e2e6-9563-4ff6-b2d8-d1f98920f4e8",
+                "products",
+                "a0cde6b9-1b75-449e-bbc1-8f4fcc3aa8e4"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Product",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"price\": 27.99\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/67cc6828-44bb-4dd2-b4bc-a4ce9cc4c3df/products/8e8b254a-affe-4f9a-a5b4-b7b32fa99934",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "67cc6828-44bb-4dd2-b4bc-a4ce9cc4c3df",
+                "products",
+                "8e8b254a-affe-4f9a-a5b4-b7b32fa99934"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Product",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Wireless Mouse\",\r\n  \"sku\": \"WM-1001\",\r\n  \"description\": \"Ergonomic wireless mouse with Bluetooth support\",\r\n  \"price\": 25.99,\r\n  \"category\": \"Electronics\",\r\n  \"stock_quantity\": 100\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/67cc6828-44bb-4dd2-b4bc-a4ce9cc4c3df/products/8e8b254a-affe-4f9a-a5b4-b7b32fa99934",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "67cc6828-44bb-4dd2-b4bc-a4ce9cc4c3df",
+                "products",
+                "8e8b254a-affe-4f9a-a5b4-b7b32fa99934"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Product",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/67cc6828-44bb-4dd2-b4bc-a4ce9cc4c3df/products/8e8b254a-affe-4f9a-a5b4-b7b32fa99934",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "67cc6828-44bb-4dd2-b4bc-a4ce9cc4c3df",
+                "products",
+                "8e8b254a-affe-4f9a-a5b4-b7b32fa99934"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "Inventory",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/e7758e3d-5f32-4506-bf23-0207f1201d72/inventory",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "e7758e3d-5f32-4506-bf23-0207f1201d72",
+                "inventory"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Item",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/e7758e3d-5f32-4506-bf23-0207f1201d72/inventory/3e6a8e6c-f0a0-4d85-9534-73d88cb7ba65",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "e7758e3d-5f32-4506-bf23-0207f1201d72",
+                "inventory",
+                "3e6a8e6c-f0a0-4d85-9534-73d88cb7ba65"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Increase stock",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"quantity\": 20,\r\n  \"supplier_id\": \"21553ed2-359d-457c-9f90-99081ae2cb8f\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/e7758e3d-5f32-4506-bf23-0207f1201d72/inventory/3e6a8e6c-f0a0-4d85-9534-73d88cb7ba65/increase",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "e7758e3d-5f32-4506-bf23-0207f1201d72",
+                "inventory",
+                "3e6a8e6c-f0a0-4d85-9534-73d88cb7ba65",
+                "increase"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Decrease stock",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"quantity\": 10,\r\n  \"reason\": \"Customer order #0001\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/e7758e3d-5f32-4506-bf23-0207f1201d72/inventory/3e6a8e6c-f0a0-4d85-9534-73d88cb7ba65/decrease",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "e7758e3d-5f32-4506-bf23-0207f1201d72",
+                "inventory",
+                "3e6a8e6c-f0a0-4d85-9534-73d88cb7ba65",
+                "decrease"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transfer",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"quantity\": 15,\r\n  \"target_warehouse_id\": \"bee3e2e6-9563-4ff6-b2d8-d1f98920f4e8\",\r\n  \"reason\": \"Transfer order #0002\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/warehouses/e7758e3d-5f32-4506-bf23-0207f1201d72/inventory/3e6a8e6c-f0a0-4d85-9534-73d88cb7ba65/transfer",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "warehouses",
+                "e7758e3d-5f32-4506-bf23-0207f1201d72",
+                "inventory",
+                "3e6a8e6c-f0a0-4d85-9534-73d88cb7ba65",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseURL",
+      "value": "http://localhost:8000",
+      "type": "default"
+    }
+  ]
+}
