@@ -1,27 +1,240 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from typing import List, Optional, Generator
+from uuid import UUID
+from pydantic import BaseModel, validator
+from models import Product, Warehouse, Stock
+from db.session import getSession
 
-router = APIRouter(prefix="/warehouses/{warehouseId}/products", tags=["product_management"])
+router = APIRouter(prefix="/warehouses/{warehouse_id}/products", tags=["product_management"])
 
-@router.post("/")
-async def create_product(warehouseId: int):
-    return {"message": f"Product created in warehouse {warehouseId}"}
+class ProductCreate(BaseModel):
+    name: str
+    sku: str
+    description: Optional[str] = None
+    price: float
+    category: Optional[str] = None
+    stock_quantity: int
 
-@router.get("/")
-async def get_products(warehouseId: int):
-    return {"message": f"List of products in warehouse {warehouseId}"}
+class ProductUpdate(BaseModel):
+    name: str
+    sku: str
+    description: Optional[str] = None
+    price: float
+    category: Optional[str] = None
 
-@router.get("/{id}")
-async def get_product(warehouseId: int, id: int):
-    return {"message": f"Product {id} details in warehouse {warehouseId}"}
+class ProductPatch(BaseModel):
+    name: Optional[str] = None
+    sku: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    category: Optional[str] = None
+    stock_quantity: Optional[int] = None
+    
+    @validator('stock_quantity')
+    def stock_quantity_not_allowed(cls, v):
+        if v is not None:
+            raise ValueError("Stock quantity cannot be updated via this endpoint. Use Stock Management endpoints instead.")
+        return v
 
-@router.patch("/{id}")
-async def patch_product(warehouseId: int, id: int):
-    return {"message": f"Product {id} partially updated in warehouse {warehouseId}"}
+class ProductResponse(BaseModel):
+    id: str
+    name: str
+    sku: str
+    price: float
+    stock_quantity: int
+    
+    class Config:
+        from_attributes = True
 
-@router.put("/{id}")
-async def update_product(warehouseId: int, id: int):
-    return {"message": f"Product {id} fully updated in warehouse {warehouseId}"}
+class ProductDetailResponse(BaseModel):
+    id: str
+    name: str
+    sku: str
+    description: Optional[str] = None
+    price: float
+    category: Optional[str] = None
+    stock_quantity: int
+    
+    class Config:
+        from_attributes = True
 
-@router.delete("/{id}")
-async def delete_product(warehouseId: int, id: int):
-    return {"message": f"Product {id} deleted from warehouse {warehouseId}"}
+class ProductCreateResponse(BaseModel):
+    id: str
+    message: str
+
+class MessageResponse(BaseModel):
+    message: str
+
+def get_db() -> Generator[Session, None, None]:
+    session = getSession()
+    try:
+        yield session
+    finally:
+        session.close()
+
+@router.post("/", response_model=ProductCreateResponse)
+async def create_product(warehouse_id: str, product: ProductCreate, db: Session = Depends(get_db)):
+    try:
+        warehouse_uuid = UUID(warehouse_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid warehouse ID format")
+    
+    # Verify warehouse exists
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    
+    # Check if SKU already exists
+    existing_product = db.query(Product).filter(Product.sku == product.sku).first()
+    if existing_product:
+        raise HTTPException(status_code=400, detail="Product with this SKU already exists")
+    
+    # Create product
+    db_product = Product(
+        name=product.name,
+        sku=product.sku,
+        description=product.description,
+        price=product.price,
+        category=product.category,
+        stock_quantity=product.stock_quantity
+    )
+    db.add(db_product)
+    db.commit()
+    db.refresh(db_product)
+    
+    return ProductCreateResponse(
+        id=str(db_product.id),
+        message="Product created successfully"
+    )
+
+@router.get("/", response_model=List[ProductResponse])
+async def get_products(warehouse_id: str, db: Session = Depends(get_db)):
+    try:
+        warehouse_uuid = UUID(warehouse_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid warehouse ID format")
+    
+    # Verify warehouse exists
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    
+    # Get all products (for now, returning all products - could be filtered by warehouse later)
+    products = db.query(Product).all()
+    return [
+        ProductResponse(
+            id=str(product.id),
+            name=product.name, # type: ignore
+            sku=product.sku, # type: ignore
+            price=float(product.price), # type: ignore
+            stock_quantity=product.stock_quantity, # type: ignore
+        )
+        for product in products
+    ]
+
+@router.get("/{product_id}", response_model=ProductDetailResponse)
+async def get_product(warehouse_id: str, product_id: str, db: Session = Depends(get_db)):
+    try:
+        warehouse_uuid = UUID(warehouse_id)
+        product_uuid = UUID(product_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    # Verify warehouse exists
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    
+    # Get product
+    product = db.query(Product).filter(Product.id == product_uuid).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    return ProductDetailResponse(
+        id=str(product.id),
+        name=product.name, # type: ignore
+        sku=product.sku, # type: ignore
+        description=product.description, # type: ignore
+        price=product.price, # type: ignore
+        category=product.category, # type: ignore
+        stock_quantity=product.stock_quantity # type: ignore
+    )
+
+@router.patch("/{product_id}", response_model=MessageResponse)
+async def patch_product(warehouse_id: str, product_id: str, product_update: ProductPatch, db: Session = Depends(get_db)):
+    try:
+        warehouse_uuid = UUID(warehouse_id)
+        product_uuid = UUID(product_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    # Verify warehouse exists
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    
+    # Get product
+    product = db.query(Product).filter(Product.id == product_uuid).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Update only provided fields (stock_quantity validation handled by Pydantic)
+    update_data = product_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(product, field, value)
+    
+    db.commit()
+    
+    return MessageResponse(message="Product updated successfully")
+
+@router.put("/{product_id}", response_model=MessageResponse)
+async def update_product(warehouse_id: str, product_id: str, product_update: ProductUpdate, db: Session = Depends(get_db)):
+    try:
+        warehouse_uuid = UUID(warehouse_id)
+        product_uuid = UUID(product_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    # Verify warehouse exists
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    
+    # Get product
+    product = db.query(Product).filter(Product.id == product_uuid).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Update all fields except stock_quantity
+    update_data = product_update.dict()
+    for field, value in update_data.items():
+        setattr(product, field, value)
+    
+    db.commit()
+    
+    return MessageResponse(message="Product updated successfully")
+
+@router.delete("/{product_id}", response_model=MessageResponse)
+async def delete_product(warehouse_id: str, product_id: str, db: Session = Depends(get_db)):
+    try:
+        warehouse_uuid = UUID(warehouse_id)
+        product_uuid = UUID(product_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    # Verify warehouse exists
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_uuid).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    
+    # Get product
+    product = db.query(Product).filter(Product.id == product_uuid).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Delete product
+    db.delete(product)
+    db.commit()
+    
+    return MessageResponse(message="Product deleted successfully")
